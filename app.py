@@ -1,6 +1,9 @@
 
+
 from flask import Flask
 from flask_mysqldb import MySQL
+from flask import request
+from flask import render_template
 mysql = MySQL()
 app = Flask(__name__)
 # My SQL Instance configurations 
@@ -19,14 +22,45 @@ def hello(): # Name of the method
     cur.execute('''SELECT * FROM students''') # execute an SQL statment
     rv = cur.fetchall() #Retreive all rows returend by the SQL statment
     return str(rv)      #Return the data in a string format
-if __name__ == "__main__":
-        app.run(host='0.0.0.0', port='5000') #Run the flask app at port 5000
 
-@app.route("/add")
-def add(): # Name of the method
-    cur = mysql.connection.cursor() #create a connection to the SQL instance
-    cur.execute('''SELECT * FROM students''') # execute an SQL statment
-    rv = cur.fetchall() #Retreive all rows returend by the SQL statment
-    return str(rv)      #Return the data in a string format
+@app.route("/add", methods=['GET'])
+def add():
+    # sid = request.args.get('id', '')
+    name = request.args.get('name', '')
+    email = request.args.get('email', '')
+    
+    conn = mysql.connection
+    cur = conn.cursor()
+    cur.execute("INSERT INTO students (studentName, email) values ('"+name+"', '"+email+"')")
+    conn.commit
+    return str('Success')
+
+@app.route("/update", methods=['GET'])
+def update():
+    name = request.args.get('name', '')
+
+    cur = mysql.connection.cursor()
+    cur.execute("UPDATE students SET studentName = 'Bob' WHERE studentName = '"+name+"'");
+
+    cur.execute('''SELECT * FROM students''')
+    rv = cur.fetchall()
+    return str(rv)
+
+
+@app.route("/delete", methods=['GET'])
+def delete():
+    name = request.args.get('name', '')
+
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM students WHERE studentName='"+name+"'")
+
+    cur.execute('''SELECT * FROM students''')
+    rv = cur.fetchall()
+    return str(rv)
+
+@app.route('/index/')
+def index():
+    return render_template('hello.html')
+
 if __name__ == "__main__":
-        app.run(host='0.0.0.0', port='5000') #Run the flask app at port 5000
+    app.run(host='0.0.0.0', port='5000') #Run the flask app at port 5000
